@@ -39,7 +39,6 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_params(path: Path = config.BEST_PARAMS_PATH) -> dict:
-    """Read the tuned settings produced by P4 (``best_params.json``)."""
     if not path.exists():
         raise FileNotFoundError(
             f"Không tìm thấy {path}. File này do P4 tạo bằng scripts/06_tune_xgb.py; "
@@ -93,7 +92,6 @@ def main() -> None:
         "None" if spw is None else f"{spw:.2f}",
     )
 
-    # Threshold is chosen on out-of-fold train predictions, never on test.
     summary, oof = run_cv(pipe, X_train, y_train)
     threshold = find_threshold(
         y_train, oof, config.THRESHOLD_STRATEGY, config.TARGET_RECALL

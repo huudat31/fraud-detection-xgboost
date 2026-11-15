@@ -43,7 +43,6 @@ def main() -> None:
         y_train, oof, config.FIGURES_DIR / "04_baseline_pr_curve.png", label="baseline"
     )
 
-    # Refit on the whole train split so P5 can try SHAP before the tuned model exists.
     pipe.fit(X_train, y_train)
     joblib.dump(pipe, config.BASELINE_MODEL_PATH)
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import matplotlib
 
-matplotlib.use("Agg")  # must run on a headless machine
+matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,7 +37,6 @@ def _as_1d(values, name: str) -> np.ndarray:
 
 
 def compute_metrics(y_true, y_proba, threshold: float = config.DEFAULT_THRESHOLD) -> dict:
-    """Return PR-AUC plus precision/recall/F1 and the confusion counts at ``threshold``."""
     y_true = _as_1d(y_true, "y_true")
     y_proba = _as_1d(y_proba, "y_proba")
     if y_true.shape != y_proba.shape:
@@ -59,7 +58,6 @@ def compute_metrics(y_true, y_proba, threshold: float = config.DEFAULT_THRESHOLD
 
 
 def _take(data, indices):
-    """Positional indexing for both pandas objects and numpy arrays."""
     return data.iloc[indices] if hasattr(data, "iloc") else data[indices]
 
 
@@ -69,11 +67,6 @@ def run_cv(
     y,
     n_splits: int = config.N_FOLDS,
 ) -> tuple[dict, np.ndarray]:
-    """Fit ``pipeline`` with StratifiedKFold and return (summary, out-of-fold proba).
-
-    Each fold gets its own clone; ``oof_proba`` is filled exactly once per row so
-    callers can select a threshold without ever touching the test split.
-    """
     labels = pd.Series(np.asarray(y).ravel())
     n_positive = int((labels == 1).sum())
     if n_splits < 2:
@@ -94,7 +87,7 @@ def run_cv(
     fit_times: list[float] = []
 
     for fold, (train_idx, valid_idx) in enumerate(splitter.split(X, labels), start=1):
-        model = clone(pipeline)  # a fresh unfitted pipeline per fold
+        model = clone(pipeline)
         started = time.perf_counter()
         model.fit(_take(X, train_idx), labels.iloc[train_idx])
         fit_times.append(time.perf_counter() - started)
@@ -131,23 +124,17 @@ def find_threshold(
     strategy: str = "f1",
     target_recall: float = config.TARGET_RECALL,
 ) -> float:
-    """Pick a decision threshold from probabilities (out-of-fold only, never test)."""
     y_true = _as_1d(y_true, "y_true")
     y_proba = _as_1d(y_proba, "y_proba")
-    if y_true.shape != y_proba.shape:
-        raise ValueError(
-            f"y_true and y_proba must have the same length, got {y_true.size} and {y_proba.size}."
-        )
-
     precision, recall, thresholds = precision_recall_curve(y_true, y_proba)
-    # precision/recall have one extra element compared with the threshold grid
     precision, recall = precision[:-1], recall[:-1]
 
     if strategy == "f1":
         f1 = 2 * precision * recall / (precision + recall + 1e-12)
         return float(thresholds[int(np.argmax(f1))])
+
     if strategy == "recall":
-        if not 0.0 < target_recall <= 1.0:
+        if not (0.0 < target_recall <= 1.0):
             raise ValueError(f"target_recall must be in (0, 1], got {target_recall}.")
         eligible = np.where(recall >= target_recall)[0]
         if eligible.size == 0:
@@ -171,7 +158,6 @@ def _save_figure(fig, path) -> Path:
 
 
 def plot_pr_curve(y_true, y_proba, path, label: str = "model") -> Path:
-    """Draw one precision-recall curve with a random-classifier baseline."""
     y_true = _as_1d(y_true, "y_true")
     y_proba = _as_1d(y_proba, "y_proba")
     precision, recall, _ = precision_recall_curve(y_true, y_proba)
@@ -197,7 +183,6 @@ def plot_pr_curve(y_true, y_proba, path, label: str = "model") -> Path:
 
 
 def plot_pr_curves(curves: dict, path) -> Path:
-    """Draw several PR curves at once; ``curves`` maps a name to ``(y_true, y_proba)``."""
     if not curves:
         raise ValueError("curves is empty; expected {name: (y_true, y_proba)}.")
 
@@ -234,7 +219,6 @@ def plot_pr_curves(curves: dict, path) -> Path:
 
 
 def plot_confusion_matrix(y_true, y_proba, threshold, path) -> Path:
-    """Draw the 2x2 confusion matrix at ``threshold``."""
     metrics = compute_metrics(y_true, y_proba, threshold)
     matrix = np.array(
         [[metrics["tn"], metrics["fp"]], [metrics["fn"], metrics["tp"]]], dtype=int
@@ -270,7 +254,6 @@ def plot_confusion_matrix(y_true, y_proba, threshold, path) -> Path:
 
 
 def save_metrics(obj, name: str) -> Path:
-    """Write a metric dict or DataFrame to ``results/metrics/<name>.csv``."""
     if isinstance(obj, dict):
         frame = pd.DataFrame([obj])
     elif isinstance(obj, pd.DataFrame):

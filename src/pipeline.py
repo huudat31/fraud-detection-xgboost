@@ -12,7 +12,6 @@ from src import config
 
 
 def compute_scale_pos_weight(y) -> float:
-    """Return ``n_negative / n_positive`` computed from ``y`` itself."""
     labels = pd.Series(y)
     n_positive = int((labels == 1).sum())
     if n_positive == 0:
@@ -21,7 +20,6 @@ def compute_scale_pos_weight(y) -> float:
 
 
 def build_xgb(params: dict | None = None, scale_pos_weight: float = 1.0) -> XGBClassifier:
-    """Create an ``XGBClassifier`` from the fixed + base config and ``params`` overrides."""
     overrides = dict(params or {})
     collisions = {"scale_pos_weight"} & set(overrides)
     if collisions:
@@ -39,7 +37,6 @@ def build_pipeline(
     params: dict | None = None,
     spw: float | None = None,
 ) -> Pipeline:
-    """Assemble scaler (optional) -> sampler (optional) -> XGBoost classifier."""
     if imbalance not in config.IMBALANCE_CHOICES:
         raise ValueError(
             f"imbalance must be one of {config.IMBALANCE_CHOICES}, got {imbalance!r}."
@@ -81,19 +78,16 @@ def build_pipeline(
             )
         )
 
-    # Only "weight" uses scale_pos_weight; the other variants must not balance twice.
     spw_used = spw if imbalance == "weight" else 1.0
     steps.append(("clf", build_xgb(params, spw_used)))
     return Pipeline(steps)
 
 
 def get_clf(pipe: Pipeline) -> XGBClassifier:
-    """Return the fitted XGBoost step of ``pipe``."""
     return pipe.named_steps["clf"]
 
 
 def transform_features(pipe: Pipeline, X: pd.DataFrame) -> pd.DataFrame:
-    """Apply every preprocessing step of ``pipe`` except the sampler and the model."""
     transformed = X
     for name, step in pipe.steps[:-1]:
         if name == "sampler":
