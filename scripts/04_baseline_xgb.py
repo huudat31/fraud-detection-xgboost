@@ -1,4 +1,3 @@
-"""Baseline XGBoost: no imbalance handling, evaluated with 5-fold CV on train."""
 import logging
 import sys
 from pathlib import Path

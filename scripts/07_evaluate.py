@@ -1,9 +1,3 @@
-"""Final XGBoost model: OOF threshold selection and a single test evaluation.
-
-Usage:
-    python scripts/07_evaluate.py            # full run, touches the test split once
-    python scripts/07_evaluate.py --no-test  # build model + threshold only
-"""
 import argparse
 import json
 import logging

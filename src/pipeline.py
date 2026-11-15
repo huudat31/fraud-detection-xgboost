@@ -1,9 +1,3 @@
-"""Build the XGBoost pipelines shared by every experiment (P2).
-
-Order of steps: ``scaler`` (optional), ``sampler`` (optional), ``clf``.
-The sampler step only exists for ``smote`` / ``under``; ``weight`` expresses the
-imbalance through ``scale_pos_weight`` and ``none`` keeps the data untouched.
-"""
 from __future__ import annotations
 
 import pandas as pd

@@ -1,8 +1,3 @@
-"""Cross-validation, metrics, threshold selection, and evaluation plots (P2).
-
-Used by P3 (``05``), P4 (``06``), P2 (``04`` / ``07``) and P5 (``08``), so the
-functions keep the signatures documented in ``QUY_DINH_CHUNG.md``.
-"""
 from __future__ import annotations
 
 import logging
